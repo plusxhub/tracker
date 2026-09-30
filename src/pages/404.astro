@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+Astro.response.status = 404;
+---
+
+<Layout title="Not found">
+  <div class="wrap py-28 text-center">
+    <p class="eyebrow mb-4">404</p>
+    <h1 class="display text-5xl uppercase sm:text-7xl">Unidentified</h1>
+    <p class="mx-auto mt-5 max-w-sm text-muted">There is no page at this address. Even the IDs have entries.</p>
+    <a href="/tracks" class="mt-8 inline-block rounded-lg bg-accent px-5 py-3 text-[14px] font-semibold text-ink">Browse the catalogue</a>
+  </div>
+</Layout>

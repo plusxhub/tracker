@@ -1,0 +1,36 @@
+# Lives at ~/docker/tracker/ on limitless next to a .env holding:
+#
+#   TRACKER_HOST=tracker.plusxhub.com
+#   DATABASE_URL=postgres://tracker_web:<password>@postgres-db-1:5432/martin_garrix_tracker
+#
+# Only the read-only tracker_web credentials belong here. Migrations and the
+# importer run from a checkout, over Tailscale, as tracker_owner.
+services:
+  tracker:
+    image: ghcr.io/plusxhub/tracker:main
+    container_name: tracker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    networks:
+      - reverse_proxy
+      - db
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=reverse_proxy
+      - traefik.http.routers.tracker.rule=Host(`${TRACKER_HOST}`)
+      # Entrypoint name must match the one the other stacks on the box use.
+      - traefik.http.routers.tracker.entrypoints=websecure
+      - traefik.http.routers.tracker.tls=true
+      # milindresolver, not plusxhubresolver: it is the one that issues plusxhub.com certs.
+      - traefik.http.routers.tracker.tls.certresolver=milindresolver
+      - traefik.http.services.tracker.loadbalancer.server.port=4321
+      # :main is a rolling tag, so WUD has to watch the digest to notice a new build.
+      - wud.watch=true
+      - wud.watch.digest=true
+
+networks:
+  reverse_proxy:
+    external: true
+  db:
+    external: true

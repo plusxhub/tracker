@@ -1,17 +1,140 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import SectionHead from '../components/SectionHead.astro';
+import { TrackRow, Meter, TagMarks } from '../components/ui';
+import { getCatalogue } from '../lib/catalogue';
+import { AVAILABILITY } from '../lib/labels';
+import { toRow } from '../lib/rows';
 
+const cat = await getCatalogue();
+const rows = cat.tracks.map(toRow);
+const grails = rows.filter((t) => t.tags.includes('grail'));
+const best = rows.filter((t) => t.tags.includes('best_of'));
+const recent = [...rows].sort((a, b) => b.addedAt.localeCompare(a.addedAt) || (b.year ?? 0) - (a.year ?? 0)).slice(0, 8);
+
+const years: number[] = [];
+for (let y = cat.stats.firstYear; y <= cat.stats.lastYear; y++) years.push(y);
+const perYear = new Map(years.map((y) => [y, rows.filter((t) => t.year === y && !t.stemsOnly).length]));
+const peak = Math.max(...perYear.values());
+
+const eraCards = cat.eras
+  .filter((e) => e.slug !== 'unknown')
+  .map((e) => {
+    const list = rows.filter((t) => t.era === e.slug && !t.stemsOnly);
+    const ys = list.map((t) => t.year).filter((y): y is number => y != null);
+    return { ...e, count: list.length, span: ys.length ? [Math.min(...ys), Math.max(...ys)] : null };
+  });
+
+const s = cat.stats;
+const stats = [
+  { n: s.tracks, label: 'songs documented' },
+  { n: s.entries, label: 'known versions' },
+  { n: s.full, label: 'circulating in full' },
+  { n: s.unheard, label: 'confirmed, never heard' },
+];
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <section class="relative overflow-hidden border-b border-line">
+    <div class="pointer-events-none absolute inset-0 opacity-70" style="background: radial-gradient(60rem 28rem at 78% -10%, rgba(212,255,58,0.13), transparent 60%);"></div>
+    <div class="wrap relative pb-14 pt-16 sm:pb-20 sm:pt-24">
+      <p class="eyebrow mb-5">Martin Garrix · unreleased music · {s.firstYear}–{s.lastYear}</p>
+      <h1 class="display text-[clamp(2rem,10vw,5.5rem)] uppercase">
+        Every ID,<br /><span class="text-accent">documented.</span>
+      </h1>
+      <p class="mt-6 max-w-xl text-[15px] leading-relaxed text-muted sm:text-base">
+        The demos, the collabs that never came out, the versions played once at a festival and never again.
+        What exists, how much of it has been heard, and where it was first played.
+      </p>
+
+      <form action="/tracks" method="get" class="mt-8 flex max-w-xl items-center gap-2" role="search">
+        <label class="sr-only" for="q">Search the catalogue</label>
+        <input
+          id="q" name="q" type="search" autocomplete="off" placeholder="Search a title, collaborator or festival"
+          class="h-12 min-w-0 flex-1 rounded-lg border border-line-strong bg-panel px-4 text-[15px] text-fg placeholder:text-faint focus:border-accent focus:outline-none"
+        />
+        <button class="h-12 shrink-0 rounded-lg bg-accent px-5 text-[14px] font-semibold text-ink transition-opacity hover:opacity-90">Search</button>
+      </form>
+
+      <dl class="mt-12 grid grid-cols-2 gap-x-8 gap-y-6 sm:grid-cols-4">
+        {stats.map((x) => (
+          <div class="border-l border-line-strong pl-4">
+            <dd class="display text-4xl tabular-nums sm:text-5xl">{x.n}</dd>
+            <dt class="eyebrow mt-2">{x.label}</dt>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="wrap pt-16">
+    <SectionHead eyebrow="The most wanted" title="Grails" href="/tracks?tag=grail" />
+    <div class="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
+      {grails.map((t) => (
+        <a href={`/tracks/${t.slug}`} class="group flex w-[78%] shrink-0 snap-start flex-col justify-between rounded-xl border border-line bg-panel p-5 transition-colors hover:border-gold/60 sm:w-auto">
+          <div>
+            <div class="mb-3 flex items-center justify-between">
+              <span class="font-mono text-xs text-faint">{t.year ?? 'Undated'}</span>
+              <TagMarks tags={['grail']} size={15} />
+            </div>
+            <h3 class="display-sm text-xl text-fg transition-colors group-hover:text-gold">{t.title}</h3>
+            <p class="mt-1 text-[13px] text-muted">{t.byline}</p>
+          </div>
+          <div class="mt-6 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
+            <Meter value={t.best} />
+            {AVAILABILITY[t.best].label}
+            {t.entries.length > 1 && <span class="text-faint">· {t.entries.length} versions</span>}
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap pt-20">
+    <SectionHead eyebrow="By year" title="IDs by year" href="/timeline" linkLabel="Open the timeline" />
+    <div class="rounded-xl border border-line bg-panel p-5 sm:p-7">
+      <div class="flex h-40 items-end gap-1.5 sm:gap-2.5">
+        {years.map((y) => {
+          const n = perYear.get(y) ?? 0;
+          return (
+            <a href={`/timeline#y${y}`} class="group flex h-full flex-1 flex-col justify-end" title={`${y}: ${n} songs`}>
+              <span class="mb-1.5 text-center font-mono text-[10px] text-faint transition-colors group-hover:text-accent">{n || ''}</span>
+              <span class="w-full rounded-t-[3px] bg-line-strong transition-colors group-hover:bg-accent" style={`height:${Math.max(3, (n / peak) * 100)}%`}></span>
+            </a>
+          );
+        })}
+      </div>
+      <div class="mt-2.5 flex gap-1.5 border-t border-line pt-2.5 sm:gap-2.5">
+        {years.map((y) => (
+          <span class="flex-1 text-center font-mono text-[10px] text-faint">
+            <span class="sm:hidden">{String(y).slice(2)}</span><span class="hidden sm:inline">{y}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+    <div class="mt-3 grid gap-3 sm:grid-cols-3">
+      {eraCards.map((e) => (
+        <a href={`/tracks?era=${e.slug}`} class="group rounded-xl border border-line p-5 transition-colors hover:border-line-strong hover:bg-panel">
+          <p class="eyebrow">{e.span ? (e.span[0] === e.span[1] ? e.span[0] : `${e.span[0]}–${e.span[1]}`) : ''}</p>
+          <h3 class="display-sm mt-2 text-lg transition-colors group-hover:text-accent">{e.name}</h3>
+          <p class="mt-1 text-[13px] text-muted">{e.count} songs</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap grid gap-x-12 gap-y-16 pt-20 lg:grid-cols-2">
+    <div>
+      <SectionHead eyebrow="Editors' picks" title="Best of" href="/tracks?tag=best_of" />
+      <div class="border-t border-line">
+        {best.slice(0, 8).map((t) => <TrackRow t={t} compact />)}
+      </div>
+    </div>
+    <div>
+      <SectionHead eyebrow="Latest entries" title="Recently added" href="/tracks?sort=added" />
+      <div class="border-t border-line">
+        {recent.map((t) => <TrackRow t={t} compact />)}
+      </div>
+    </div>
+  </section>
+</Layout>

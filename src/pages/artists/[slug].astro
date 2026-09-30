@@ -1,0 +1,39 @@
+---
+import { ArrowLeft } from 'lucide-react';
+import Layout from '../../layouts/Layout.astro';
+import { TrackRow } from '../../components/ui';
+import { getCatalogue } from '../../lib/catalogue';
+import { toRow } from '../../lib/rows';
+
+const cat = await getCatalogue();
+const artist = cat.artistBySlug.get(Astro.params.slug!);
+if (!artist) return Astro.rewrite('/404');
+
+const tracks = artist.trackSlugs.map((s) => cat.bySlug.get(s)!).filter(Boolean);
+const rows = tracks.map(toRow);
+const self = artist.slug === 'martin-garrix';
+const years = tracks.map((t) => t.year).filter((y): y is number => y != null);
+const roles = new Set(tracks.flatMap((t) => t.entries.flatMap((e) => e.credits.filter((c) => c.slug === artist.slug).map((c) => c.role))));
+const roleText: Record<string, string> = {
+  main: 'co-lead artist', feat: 'featured vocalist', prod: 'producer', remixer: 'remixer',
+  original_artist: 'original artist', vocalist: 'vocalist', with: 'collaborator', unknown: 'collaborator',
+};
+const n = tracks.length;
+---
+
+<Layout title={artist.name} description={`${n} documented unreleased ${n === 1 ? 'song' : 'songs'} involving ${artist.name}${self ? '' : ' and Martin Garrix'}.`}>
+  <div class="wrap pt-8">
+    <a href="/artists" class="link inline-flex items-center gap-1.5 text-[13px]"><ArrowLeft size={14} /> Artists</a>
+    <header class="mt-8 border-b border-line pb-8">
+      <p class="eyebrow mb-4">
+        {n} {n === 1 ? 'song' : 'songs'}{years.length > 0 && ` · ${Math.min(...years)}${Math.min(...years) !== Math.max(...years) ? `–${Math.max(...years)}` : ''}`}
+      </p>
+      <h1 class="display text-[clamp(2rem,7vw,4.5rem)] uppercase [overflow-wrap:anywhere]">{artist.name}</h1>
+      <p class="mt-4 text-muted">
+        {self ? 'Every documented song.' : `Appears as ${[...roles].map((r) => roleText[r] ?? r).filter((v, i, a) => a.indexOf(v) === i).join(', ')}.`}
+        {artist.aliases.length > 0 && <span> Also credited as {artist.aliases.join(', ')}.</span>}
+      </p>
+    </header>
+    <div class="pt-2">{rows.map((t) => <TrackRow t={t} />)}</div>
+  </div>
+</Layout>

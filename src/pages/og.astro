@@ -1,0 +1,32 @@
+---
+// Source for public/og.png. Regenerate with:
+//   google-chrome --headless --window-size=1200,630 --screenshot=public/og.png http://localhost:4321/og
+import '../styles/global.css';
+import { getCatalogue } from '../lib/catalogue';
+
+const { stats } = await getCatalogue();
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <title>Social card</title>
+  </head>
+  <body class="m-0">
+    <div class="relative flex h-[630px] w-[1200px] flex-col justify-between overflow-hidden bg-ink p-16">
+      <div class="pointer-events-none absolute inset-0" style="background: radial-gradient(52rem 26rem at 85% -10%, rgba(212,255,58,0.18), transparent 60%);"></div>
+      <div class="relative flex items-center gap-4">
+        <span class="display grid h-12 w-12 place-items-center rounded-lg bg-accent text-xl text-ink">ID</span>
+        <span class="display text-2xl">TRACKER</span>
+      </div>
+      <div class="relative">
+        <p class="display text-[6.25rem] uppercase">Every ID,<br /><span class="text-accent">documented.</span></p>
+        <p class="eyebrow mt-8 text-[1.05rem]">
+          Martin Garrix unreleased music · {stats.tracks} songs · {stats.entries} versions · {stats.firstYear}–{stats.lastYear}
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

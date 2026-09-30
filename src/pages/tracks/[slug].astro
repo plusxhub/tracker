@@ -1,0 +1,139 @@
+---
+import { ArrowLeft, ArrowRight, ArrowUpRight, FileText, MessageCircle, MessagesSquare, ListMusic, Play, Headphones, Link as LinkIcon } from 'lucide-react';
+import Layout from '../../layouts/Layout.astro';
+import Credits from '../../components/Credits.astro';
+import { AvailabilityLabel, Chip, TagMarks } from '../../components/ui';
+import { getCatalogue } from '../../lib/catalogue';
+import { AVAILABILITY, EVIDENCE, KIND, QUALITY, STATUS, TYPE, byline, versionName } from '../../lib/labels';
+
+const cat = await getCatalogue();
+const track = cat.bySlug.get(Astro.params.slug!);
+if (!track) return Astro.rewrite('/404');
+
+const i = cat.tracks.indexOf(track);
+const prev = cat.tracks[i - 1];
+const next = cat.tracks[i + 1];
+const define = (category: string, slug: string | null) =>
+  cat.glossary.find((g) => g.category === category && g.slug === slug)?.definition;
+
+const years = [...new Set(track.entries.map((e) => e.year).filter((y): y is number => y != null))].sort();
+const span = years.length ? (years.length > 1 ? `${years[0]}–${years.at(-1)}` : String(years[0])) : 'Undated';
+const n = track.entries.length;
+const lead = track.placeholder && track.entries[0]!.versionLabel ? `${track.title} · ${track.entries[0]!.versionLabel}` : track.title;
+const who = byline(track.credits);
+const description = `${lead} by ${who}. ${n === 1 ? 'One documented version' : `${n} documented versions`}; ${AVAILABILITY[track.best].label.toLowerCase()}.${track.releasedAs ? ` Later released as ${track.releasedAs}.` : ''}`;
+const icons: Record<string, typeof Play> = {
+  video: Play, tracklist: ListMusic, article: FileText, social: MessageCircle, forum: MessagesSquare, audio: Headphones, other: LinkIcon,
+};
+---
+
+<Layout title={`${lead} – ${who}`} description={description}>
+  <article class="wrap pt-8">
+    <a href="/tracks" class="link inline-flex items-center gap-1.5 text-[13px]"><ArrowLeft size={14} /> Browse</a>
+
+    <header class="mt-8 border-b border-line pb-10">
+      <p class="eyebrow mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span>{span}</span>
+        {track.era && <><span>·</span><span>{track.era.name}</span></>}
+        <span>·</span>
+        <span>{n} {n === 1 ? 'version' : 'versions'}</span>
+      </p>
+      <h1 class="display flex flex-wrap items-center gap-x-4 gap-y-2 text-[clamp(2rem,7vw,4.5rem)] uppercase">
+        <span class="[overflow-wrap:anywhere]">{lead}</span>
+        <span class="flex items-center gap-2"><TagMarks tags={track.tags} size={26} /></span>
+      </h1>
+      <p class="mt-4 text-lg text-muted"><Credits credits={track.credits} /></p>
+
+      <div class="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <AvailabilityLabel value={track.best} />
+        {track.aka.length > 0 && (
+          <p class="text-[13px] text-muted"><span class="text-faint">Also known as</span> {track.aka.join(', ')}</p>
+        )}
+      </div>
+
+      {track.releasedAs && (
+        <p class="mt-7 max-w-2xl rounded-lg border border-line bg-panel px-4 py-3 text-[14px] leading-relaxed text-muted">
+          <span class="eyebrow mr-2 text-accent">Released</span>
+          A version of this song came out officially as <span class="text-fg">{track.releasedAs}</span>. What is documented here are the versions that did not.
+        </p>
+      )}
+      {track.notes && <p class="prose-notes mt-6 max-w-2xl leading-relaxed text-muted">{track.notes}</p>}
+    </header>
+
+    <section class="pt-10">
+      <h2 class="eyebrow mb-5">{n === 1 ? 'The documented version' : `All ${n} documented versions`}</h2>
+      <ol class="grid gap-3">
+        {track.entries.map((e) => (
+          <li id={`v${e.id}`} class="scroll-mt-24 rounded-xl border border-line bg-panel p-5 sm:p-6">
+            <div class="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+              <div class="min-w-0">
+                <h3 class="display-sm flex items-center gap-2 text-xl">
+                  <span class="[overflow-wrap:anywhere]">{versionName(e, track.title)}</span>
+                  <TagMarks tags={e.tags} size={15} />
+                </h3>
+                <p class="mt-1.5 text-[14px] text-muted"><Credits credits={e.credits} /></p>
+              </div>
+              <div class="flex shrink-0 flex-col items-start gap-1.5 sm:items-end">
+                <span title={define('availability', e.availability)}><AvailabilityLabel value={e.availability} /></span>
+                {e.quality && <span class="font-mono text-[11px] uppercase tracking-[0.08em] text-muted" title={define('quality', e.quality)}>{QUALITY[e.quality] ?? e.quality}</span>}
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-1.5">
+              {e.year && <Chip tone="muted">{e.year}</Chip>}
+              {e.kind !== 'track' && <Chip>{KIND[e.kind] ?? e.kind}</Chip>}
+              {e.type && e.type !== 'unknown' && <Chip title={define('type', e.type)}>{TYPE[e.type] ?? e.type}</Chip>}
+              {e.evidence && <Chip tone={e.evidence === 'confirmed' ? 'default' : 'muted'} title={define('evidence', e.evidence)}>{EVIDENCE[e.evidence]}</Chip>}
+              {e.status && e.status !== 'unknown' && !(e.status === 'cancelled' && track.releasedAs) && <Chip tone={e.status === 'in_progress' ? 'accent' : 'muted'}>{STATUS[e.status]}</Chip>}
+              {e.tags.includes('grail') && <Chip tone="gold">Grail</Chip>}
+              {e.tags.includes('best_of') && <Chip tone="accent">Best of</Chip>}
+            </div>
+
+            {(e.variation || e.notes) && (
+              <div class="mt-5 max-w-3xl space-y-3 text-[15px] leading-relaxed text-fg/85">
+                {e.variation && <p><span class="eyebrow mr-2">What is different</span>{e.variation}</p>}
+                {e.notes && <p class="prose-notes">{e.notes}</p>}
+              </div>
+            )}
+
+            {e.sources.length > 0 && (
+              <div class="mt-5 border-t border-line pt-4">
+                <p class="eyebrow mb-2.5">Sources</p>
+                <ul class="grid gap-1.5">
+                  {e.sources.map((s) => {
+                    const Icon = icons[s.kind] ?? LinkIcon;
+                    return (
+                      <li>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" class="group flex items-start gap-2.5 text-[14px] text-muted transition-colors hover:text-fg">
+                          <span class="mt-[3px] shrink-0 text-faint transition-colors group-hover:text-accent"><Icon size={15} /></span>
+                          <span class="min-w-0"><span class="[overflow-wrap:anywhere]">{s.label}</span> <span class="whitespace-nowrap font-mono text-[11px] text-faint">{s.host}<span class="ml-0.5 inline-block align-[-1px]"><ArrowUpRight size={11} /></span></span></span>
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <nav class="mt-14 grid gap-3 border-t border-line pt-6 sm:grid-cols-2" aria-label="Neighbouring songs">
+      {prev ? (
+        <a href={`/tracks/${prev.slug}`} class="group rounded-lg border border-line p-4 transition-colors hover:bg-panel">
+          <span class="eyebrow flex items-center gap-1.5"><ArrowLeft size={12} /> Earlier · {prev.year ?? 'Undated'}</span>
+          <span class="display-sm mt-1.5 block truncate group-hover:text-accent">{prev.title}</span>
+          <span class="block truncate text-[13px] text-muted">{byline(prev.credits)}</span>
+        </a>
+      ) : <span />}
+      {next && (
+        <a href={`/tracks/${next.slug}`} class="group rounded-lg border border-line p-4 text-right transition-colors hover:bg-panel">
+          <span class="eyebrow flex items-center justify-end gap-1.5">Later · {next.year ?? 'Undated'} <ArrowRight size={12} /></span>
+          <span class="display-sm mt-1.5 block truncate group-hover:text-accent">{next.title}</span>
+          <span class="block truncate text-[13px] text-muted">{byline(next.credits)}</span>
+        </a>
+      )}
+    </nav>
+  </article>
+</Layout>

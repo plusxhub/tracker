@@ -1,0 +1,89 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Wider canvas for the browse page. */
+  bare?: boolean;
+}
+
+const SITE = 'ID Tracker';
+const {
+  title,
+  description = "A catalogue of Martin Garrix's unreleased music: every known ID, demo and alternate version, with where it was played and what is known about it.",
+} = Astro.props;
+const fullTitle = title ? `${title} · ${SITE}` : `${SITE} · Martin Garrix unreleased music, documented`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const path = Astro.url.pathname;
+const nav = [
+  { href: '/tracks', label: 'Browse' },
+  { href: '/timeline', label: 'Timeline' },
+  { href: '/artists', label: 'Artists' },
+  { href: '/key', label: 'Key' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#09090a" />
+    <meta property="og:site_name" content={SITE} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title ?? SITE} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL('/og.png', Astro.site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:bg-accent focus:px-3 focus:py-2 focus:text-ink">Skip to content</a>
+    <header class="sticky top-0 z-40 border-b border-line bg-ink/85 backdrop-blur-md">
+      <div class="wrap flex h-14 items-center justify-between gap-3">
+        <a href="/" class="group flex items-center gap-2.5" aria-label="ID Tracker home">
+          <span class="display grid h-7 w-7 place-items-center rounded-[5px] bg-accent text-[13px] text-ink">ID</span>
+          <span class="display hidden text-[15px] tracking-tight text-fg sm:inline">TRACKER</span>
+        </a>
+        <nav class="-mr-2 flex items-center overflow-x-auto text-[13px]" aria-label="Main">
+          {nav.map((n) => (
+            <a
+              href={n.href}
+              aria-current={path.startsWith(n.href) ? 'page' : undefined}
+              class:list={[
+                'rounded-md px-2 py-1.5 transition-colors hover:text-fg sm:px-3',
+                path.startsWith(n.href) ? 'text-fg' : 'text-muted',
+              ]}
+            >
+              {n.label}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="mt-24 border-t border-line">
+      <div class="wrap grid gap-6 py-10 text-[13px] text-muted md:grid-cols-[1fr_auto]">
+        <p class="max-w-xl leading-relaxed">
+          A fan-made reference, compiled from community-maintained trackers. No audio is hosted or linked here.
+          Not affiliated with Martin Garrix, STMPD RCRDS or any label.
+        </p>
+        <p class="flex items-start gap-5">
+          <a class="link" href="/about">About</a>
+          <a class="link" href="/key">Key</a>
+          <a class="link" href="/api/catalogue.json">Data</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

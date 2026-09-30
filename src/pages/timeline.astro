@@ -1,0 +1,69 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { TrackRow } from '../components/ui';
+import { getCatalogue } from '../lib/catalogue';
+import { toRow } from '../lib/rows';
+
+const cat = await getCatalogue();
+const rows = cat.tracks.map(toRow).filter((t) => !t.stemsOnly);
+const years: number[] = [];
+for (let y = cat.stats.firstYear; y <= cat.stats.lastYear; y++) years.push(y);
+const undated = rows.filter((t) => t.year == null);
+const eraOf = (y: number) => rows.find((t) => t.year === y)?.era;
+const eraName = (slug: string | null | undefined) => cat.eras.find((e) => e.slug === slug)?.name;
+---
+
+<Layout title="Timeline" description="Martin Garrix's unreleased music year by year, from the Spinnin' Records days to STMPD RCRDS.">
+  <div class="wrap pt-10">
+    <p class="eyebrow mb-3">{cat.stats.firstYear}–{cat.stats.lastYear}</p>
+    <h1 class="display text-4xl uppercase sm:text-5xl">Timeline</h1>
+    <p class="mt-4 max-w-xl text-muted">What was made, teased or played in each year, next to what came out officially at the time.</p>
+
+    <nav class="sticky top-14 z-20 -mx-5 mt-8 flex gap-1 overflow-x-auto border-y border-line bg-ink/90 px-5 py-2.5 backdrop-blur-md md:-mx-8 md:px-8" aria-label="Jump to year">
+      {years.map((y) => (
+        <a href={`#y${y}`} class="rounded-md px-2.5 py-1 font-mono text-xs text-muted transition-colors hover:bg-raised hover:text-accent">{y}</a>
+      ))}
+      {undated.length > 0 && <a href="#undated" class="rounded-md px-2.5 py-1 font-mono text-xs text-muted hover:bg-raised hover:text-accent">Undated</a>}
+    </nav>
+
+    <div class="mt-4">
+      {years.map((y) => {
+        const list = rows.filter((t) => t.year === y);
+        const events = cat.timeline.filter((e) => e.year === y && e.kind === 'event');
+        const blurb = cat.timeline.find((e) => e.year === y && e.kind === 'blurb');
+        return (
+          <section id={`y${y}`} class="grid scroll-mt-32 gap-x-10 gap-y-5 border-b border-line py-12 lg:grid-cols-[17rem_1fr]">
+            <div class="lg:sticky lg:top-32 lg:self-start">
+              <h2 class="display text-6xl tabular-nums text-fg sm:text-7xl">{y}</h2>
+              <p class="eyebrow mt-3">{eraName(eraOf(y)) ?? ''} · {list.length} {list.length === 1 ? 'song' : 'songs'}</p>
+              {events.length > 0 && (
+                <ul class="mt-5 space-y-2.5">
+                  {events.map((e) => (
+                    <li class="border-l-2 border-accent pl-3 text-[13px] leading-snug">
+                      {e.dateText && <span class="block font-mono text-[11px] text-faint">{e.dateText}</span>}
+                      <span class="text-fg/90">{e.body}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {blurb && <p class="mt-5 text-[13px] leading-relaxed text-muted">{blurb.body}</p>}
+            </div>
+            <div class="border-t border-line">
+              {list.length ? list.map((t) => <TrackRow t={t} showYear={false} />) : <p class="py-6 text-[13px] text-faint">Nothing documented for this year yet.</p>}
+            </div>
+          </section>
+        );
+      })}
+      {undated.length > 0 && (
+        <section id="undated" class="grid scroll-mt-32 gap-x-10 gap-y-5 py-12 lg:grid-cols-[17rem_1fr]">
+          <div>
+            <h2 class="display text-4xl uppercase">Undated</h2>
+            <p class="eyebrow mt-3">{undated.length} songs</p>
+            <p class="mt-5 text-[13px] leading-relaxed text-muted">Surfaced without enough context to place in a year.</p>
+          </div>
+          <div class="border-t border-line">{undated.map((t) => <TrackRow t={t} showYear={false} />)}</div>
+        </section>
+      )}
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,22 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Browser from '../../components/Browser';
+import { getCatalogue } from '../../lib/catalogue';
+import { toRow } from '../../lib/rows';
+
+const cat = await getCatalogue();
+const rows = cat.tracks.map(toRow);
+const eras = cat.eras.map((e) => ({ value: e.slug, label: e.name }));
+const artists = cat.artists
+  .filter((a) => a.slug !== 'martin-garrix')
+  .sort((a, b) => a.name.localeCompare(b.name))
+  .map((a) => ({ value: a.slug, label: a.name }));
+---
+
+<Layout title="Browse" description={`Search and filter ${cat.stats.tracks} documented Martin Garrix IDs by era, year, collaborator, type and how much of each has surfaced.`}>
+  <div class="wrap pt-10">
+    <p class="eyebrow mb-3">The catalogue</p>
+    <h1 class="display mb-6 text-4xl uppercase sm:text-5xl">Browse</h1>
+    <Browser client:load tracks={rows} eras={eras} artists={artists} />
+  </div>
+</Layout>

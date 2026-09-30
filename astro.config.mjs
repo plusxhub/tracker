@@ -15,9 +15,9 @@ export default defineConfig({
     mode: 'standalone'
   }),
 
-  server: { host: true },
-
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    // Bundle every dependency into the server build so the image needs no node_modules.
+    ssr: { noExternal: true }
   }
 });

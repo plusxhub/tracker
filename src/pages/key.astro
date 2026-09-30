@@ -1,0 +1,59 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { AvailabilityLabel, Chip, TagMarks } from '../components/ui';
+import { getCatalogue } from '../lib/catalogue';
+import { EVIDENCE, QUALITY, TYPE } from '../lib/labels';
+import type { Availability } from '../lib/types';
+
+const cat = await getCatalogue();
+const used: Record<string, Set<string>> = {
+  availability: new Set(cat.tracks.flatMap((t) => t.entries.map((e) => e.availability as string))),
+  quality: new Set(cat.tracks.flatMap((t) => t.entries.map((e) => e.quality ?? ''))),
+  type: new Set(cat.tracks.flatMap((t) => t.entries.map((e) => e.type ?? ''))),
+  evidence: new Set(cat.tracks.flatMap((t) => t.entries.map((e) => e.evidence ?? ''))),
+  tag: new Set(cat.tracks.flatMap((t) => t.tags)),
+};
+const terms = (category: string, order?: string[]) => {
+  const list = cat.glossary.filter((g) => g.category === category && used[category]!.has(g.slug));
+  return order ? list.sort((a, b) => order.indexOf(a.slug) - order.indexOf(b.slug)) : list;
+};
+const sections = [
+  { id: 'availability', title: 'How much exists', intro: 'How much of a version is known to be circulating. The gauge fills from a snippet up to the original file.', terms: terms('availability', ['og_file', 'full', 'partial', 'snippet', 'circulating', 'none']) },
+  { id: 'evidence', title: 'Unheard, but known', intro: 'For versions nobody has heard, how solid the evidence is that they exist.', terms: terms('evidence') },
+  { id: 'quality', title: 'Quality', intro: 'The quality of the best copy known.', terms: terms('quality', ['lossless', 'cd', 'high', 'low', 'abysmal', 'recording']) },
+  { id: 'type', title: 'Type', intro: 'What kind of recording a version is.', terms: terms('type') },
+  { id: 'tag', title: 'Highlights', intro: 'Marks added by the editors of the community trackers.', terms: terms('tag') },
+];
+---
+
+<Layout title="Key" description="What the terms and badges on the tracker mean: availability, quality, type and the editors' highlights.">
+  <div class="wrap pt-10">
+    <p class="eyebrow mb-3">Reading the tracker</p>
+    <h1 class="display text-4xl uppercase sm:text-5xl">Key</h1>
+    <p class="mt-4 max-w-xl text-muted">Every version carries a few labels. This is what they mean.</p>
+
+    <div class="mt-12 grid gap-14">
+      {sections.filter((s) => s.terms.length).map((s) => (
+        <section id={s.id} class="grid scroll-mt-24 gap-x-10 gap-y-4 lg:grid-cols-[17rem_1fr]">
+          <div>
+            <h2 class="display-sm text-xl">{s.title}</h2>
+            <p class="mt-2 text-[13px] leading-relaxed text-muted">{s.intro}</p>
+          </div>
+          <dl class="border-t border-line">
+            {s.terms.map((g) => (
+              <div class="grid gap-x-6 gap-y-1.5 border-b border-line py-4 sm:grid-cols-[11rem_1fr]">
+                <dt class="flex items-center">
+                  {s.id === 'availability' ? <AvailabilityLabel value={g.slug as Availability} />
+                    : s.id === 'tag' ? <span class="flex items-center gap-2 text-[14px]"><TagMarks tags={[g.slug]} size={15} />{g.term}</span>
+                    : s.id === 'quality' ? <span class="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">{QUALITY[g.slug] ?? g.term}</span>
+                    : <Chip>{(s.id === 'type' ? TYPE[g.slug] : EVIDENCE[g.slug]) ?? g.term}</Chip>}
+                </dt>
+                <dd class="text-[14px] leading-relaxed text-fg/85">{g.definition}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      ))}
+    </div>
+  </div>
+</Layout>

@@ -33,7 +33,14 @@ export function parseTimeline(rows: TimelineRow[]): TimelineEvent[] {
       else out.push({ year: r.year, era, kind: 'event', dateText: null, body: squash(`${inside} ${after}`) });
     }
     if (r.blurb) {
-      const body = squash(r.blurb.replace(/\[\d+\]/g, '').replace(/\*/g, '').replace(/\.(?=[A-Z])/g, '. '));
+      let body = squash(
+        r.blurb
+          .replace(/\[\d+\]/g, '')
+          .replace(/\[(?=[A-Z])/g, ' ') // opening bracket of a citation whose number was lost
+          .replace(/\*/g, '')
+          .replace(/\.(?=[A-Z])/g, '. '),
+      );
+      if (!/[.!?]$/.test(body)) body += '.';
       out.push({ year: r.year, era, kind: 'blurb', dateText: null, body });
     }
   }

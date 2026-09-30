@@ -1,0 +1,22 @@
+---
+import { creditGroups } from '../lib/labels';
+import type { Credit } from '../lib/types';
+
+interface Props {
+  credits: Credit[];
+}
+const groups = creditGroups(Astro.props.credits);
+---
+
+{groups.map((g, gi) => (
+  <Fragment>
+    {gi > 0 && <span class="text-faint"> · </span>}
+    {g.prefix && <span class="text-faint">{g.prefix} </span>}
+    {g.credits.map((c, i) => (
+      <Fragment>
+        {i > 0 && <span class="text-faint">{i === g.credits.length - 1 ? ' & ' : ', '}</span>}
+        <a class="link" href={`/artists/${c.slug}`} title={c.creditedAs ? `${c.name}, credited as ${c.creditedAs}` : undefined}>{c.creditedAs ?? c.name}</a>{c.uncertain && <span class="text-faint" title="The source is not sure about this credit"> (?)</span>}
+      </Fragment>
+    ))}
+  </Fragment>
+))}

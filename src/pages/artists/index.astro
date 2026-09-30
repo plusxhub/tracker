@@ -1,0 +1,49 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCatalogue } from '../../lib/catalogue';
+
+const cat = await getCatalogue();
+const artists = cat.artists.filter((a) => a.slug !== 'martin-garrix');
+const frequent = artists.filter((a) => a.trackSlugs.length > 1);
+const letters = new Map<string, typeof artists>();
+for (const a of [...artists].sort((x, y) => x.name.localeCompare(y.name))) {
+  const first = a.name.normalize('NFKD')[0]!.toUpperCase();
+  const k = /[A-Z]/.test(first) ? first : '#';
+  letters.set(k, [...(letters.get(k) ?? []), a]);
+}
+---
+
+<Layout title="Artists" description={`The ${artists.length} collaborators who appear on Martin Garrix's unreleased music.`}>
+  <div class="wrap pt-10">
+    <p class="eyebrow mb-3">{artists.length} collaborators</p>
+    <h1 class="display text-4xl uppercase sm:text-5xl">Artists</h1>
+    <p class="mt-4 max-w-xl text-muted">Everyone credited on a documented ID: co-producers, vocalists, writers and the artists whose songs were remixed.</p>
+
+    <h2 class="eyebrow mb-4 mt-12">Most frequent</h2>
+    <div class="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      {frequent.slice(0, 12).map((a) => (
+        <a href={`/artists/${a.slug}`} class="group flex items-baseline justify-between gap-3 rounded-lg border border-line bg-panel px-4 py-3.5 transition-colors hover:border-line-strong">
+          <span class="display-sm truncate group-hover:text-accent">{a.name}</span>
+          <span class="font-mono text-xs tabular-nums text-faint">{a.trackSlugs.length}</span>
+        </a>
+      ))}
+    </div>
+
+    <h2 class="eyebrow mb-2 mt-14">Everyone, A–Z</h2>
+    <div class="columns-2 gap-x-10 md:columns-3 lg:columns-4">
+      {[...letters].map(([letter, list]) => (
+        <section class="mb-6 break-inside-avoid">
+          <h3 class="display border-b border-line pb-1.5 pt-4 text-lg text-accent">{letter}</h3>
+          <ul class="mt-2 space-y-1">
+            {list.map((a) => (
+              <li class="flex items-baseline justify-between gap-2 text-[14px]">
+                <a class="truncate text-muted transition-colors hover:text-fg" href={`/artists/${a.slug}`}>{a.name}</a>
+                <span class="font-mono text-[11px] tabular-nums text-faint">{a.trackSlugs.length}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </div>
+</Layout>
