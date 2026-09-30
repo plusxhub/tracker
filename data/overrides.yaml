@@ -1,0 +1,326 @@
+# Curated decisions the importer cannot derive from the sheets.
+#
+# Rows are referenced by identity key (`bun run import --keys` lists them),
+# never by URL or file name. Keys survive rows being moved or re-ordered in the
+# sheets; if an editor renames a row its key changes and the importer reports
+# the stale reference instead of silently dropping the decision.
+
+links:
+  # Citations that are public although their host defaults to private.
+  public_rows:
+    # Kenneth G's own SoundCloud upload of his self-released track.
+    - b.unreleased:lim-kenneth-g
+  # Citations kept private although their host is normally fine.
+  private_rows:
+    # Reddit thread about the leak itself.
+    - b.unreleased:made-in-china-tv-noise
+
+notes:
+  redact:
+    # Don't name the place leaks are sold.
+    - { pattern: "TheSource\\.to|thesource", replace: "a leak marketplace" }
+
+artists:
+  # Names that contain a separator and must not be split.
+  acts:
+    - "Matisse & Sadko"
+    - "Axwell /\\ Ingrosso"
+    - "Vargas & Lagola"
+    - "Bono & The Edge"
+  # Sheet spelling -> canonical name.
+  spellings:
+    Nijia: Nija
+    Jen Hult: Jens Hult
+    Talay Ridley: Talay Riley
+    Talay Reiley: Talay Riley
+    Sasha Sloan: Sasha Alex Sloan
+    Maneskin: Måneskin
+    Danny Ávila: Danny Avila
+    HeadHunterz: Headhunterz
+    Schoolboy: SchoolBoy
+    Charlie XCX: Charli XCX
+    Arjit Singh: Arijit Singh
+  # Sheet B lists collaborators without a role. These are credited as featured
+  # vocalists; everyone else in that column is treated as a co-lead artist.
+  vocalists:
+    - Bonn
+    - John Martin
+    - Shaun Farrugia
+    - Jaimes
+    - Mike Shinoda
+    - Troye Sivan
+    - Ellie Goulding
+    - Ne-Yo
+    - Jake Torrey
+    - Tom Walker
+    - Maejor
+    - Sasha Alex Sloan
+    - G-Eazy
+    - Ed Sheeran
+    - Tori Kelly
+    - Jens Hult
+    - Simon Aldred
+    - Ryan Tedder
+    - Charli XCX
+  # Other names an artist is searched by.
+  aliases:
+    Martin Garrix: [GRX, YTRAM]
+
+skip:
+  a.unreleased:untitled: >-
+    Nameless row under 2025 carrying only OG / Full / Lossless. Nothing to
+    document until the editors give it a name.
+  b.unreleased:arjit-singh: Collaborator name only, with no title, source or notes.
+  b.unreleased:alan-walker: Collaborator name only, with no title, source or notes.
+
+# Sheet B row -> the Sheet A row that documents the same recording.
+same_entry:
+  b.unreleased:id-1-livestream: a.unreleased:martin-garrix-id-livestream-1
+  b.unreleased:id-2-livestream: a.unreleased:martin-garrix-id-livestream-2
+  b.unreleased:id-alesso-pressure-ispiration: a.unreleased:martin-garrix-id-alesso-pressure-inspiration
+  b.unreleased:music-box-carousel-hardwell: a.unreleased:martin-garrix-and-hardwell-music-box-carousel
+  # B files this under 2014 with no version; its notes describe the Ultra 2015 premiere.
+  b.unreleased:rewind-repeat-it-ed-sheeran: a.unreleased:martin-garrix-rewind-repeat-it-ultra-2015-feat-ed-sheeran
+  b.unreleased:rewind-repeat-it-ultra-2016-ed-sheeran: a.unreleased:martin-garrix-rewind-repeat-it-ultra-2016-vip-edit-feat-ed-sheeran
+  b.unreleased:id-n-d: a.unreleased:martin-garrix-id-1-jan-2015
+  b.unreleased:id-justin-bieber: a.unreleased:martin-garrix-and-justin-bieber-id-2-songs
+  b.unreleased:id-oxford-university-area21: a.unreleased:area21-same-all-day-id-oxford-2016
+  b.unreleased:live-tonight-ryan-tedder-onerepublic: a.unreleased:martin-garrix-wanna-live-tonight-feat-ryan-tedder
+  b.unreleased:wake-up-ryan-tedder-onerepublic: a.unreleased:martin-garrix-wake-up-feat-ryan-tedder
+  b.unreleased:id-pirates-brooks: a.unreleased:martin-garrix-and-brooks-pirates
+  b.demos:id-pirates-brooks: a.unreleased:martin-garrix-and-brooks-pirates
+  b.unreleased:someone-you-loved-remix-lewis-capaldi: a.unreleased:lewis-capaldi-someone-you-loved-martin-garrix-matisse-and-sadko-remix
+  b.unreleased:id-thunder-blinders: a.unreleased:martin-garrix-and-blinders-thunder-id
+  b.unreleased:illenium: a.unreleased:martin-garrix-and-illenium-id
+  b.demos:waiting-for-love-24-3-15-avicii-and-jens-hult-other-singer: a.unreleased:martin-garrix-and-avicii-waiting-for-love-24-03-2015-feat-jen-hult
+  b.demos:waiting-for-love-24-3-15-bonus-acoustic-avicii-and-jens-hult-reworked: a.unreleased:martin-garrix-and-avicii-waiting-for-love-bonus-24-03-2015-feat-jen-hult
+  b.demos:waiting-for-love-new-vox-26-3-15-avicii-few-changes: a.unreleased:martin-garrix-and-avicii-waiting-for-love-new-vox-26-03-2015-feat-simon-aldred
+  b.demos:waiting-for-love-phone-demo-avicii-and-vargas-and-lagola-other-singer: a.unreleased:martin-garrix-and-avicii-waiting-for-love-phone-memo-feat-vincent-pontare
+  b.demos:waiting-for-love-proderi-avicii-few-changes: a.unreleased:martin-garrix-and-avicii-waiting-for-love-proderi-feat-simon-aldred
+  # "SKETCH3" in B, "STRETCH 3" in A: same vocalist, same description. Probably one file.
+  b.demos:waiting-for-love-sketch3-avicii-changes-in-the-lyrics: a.unreleased:martin-garrix-and-avicii-waiting-for-love-stretch-3-feat-simon-aldred
+  b.demos:waiting-for-tomorrow-ultra-2016-mike-shinoda-changes-in-the-lyrics: a.unreleased:martin-garrix-waiting-for-tomorrow-v1-feat-mike-shinoda-and-chester-bennington
+  b.demos:scared-to-be-lonely-troye-sivan-other-singer: a.unreleased:martin-garrix-scared-to-be-lonely-demo-vocals-feat-troye-sivan
+  b.demos:like-i-do-stargate-reworked: a.unreleased:david-guetta-and-stargate-think-of-you-like-i-do-original-demo
+  b.demos:sandcastles-in-the-snow-used-to-love-bonn-other-singer: a.unreleased:martin-garrix-sandcastles-in-the-snow-used-to-love-demo-feat-bonn
+  b.demos:take-it-in-written-in-the-sky-justin-mylo-reworked: a.unreleased:martin-garrix-and-justin-mylo-take-it-in
+  b.demos:inside-our-hearts-shaun-farrugia-ultra-2023: a.unreleased:martin-garrix-and-alesso-inside-our-hearts-ultra-music-festival-2023-feat-shaun-farrugia
+  b.demos:inside-our-hearts-alesso-lunar-eclipse-tom-walker-other-singer: a.unreleased:martin-garrix-and-alesso-inside-our-hearts-alesso-version-feat-tom-walker
+
+# Sheet B rows that share a title with a Sheet A row but are a different version.
+distinct:
+  # B has three Oussama files against A's one. The plain "Oussama" is matched to A.
+  - b.unreleased:oussama-old-2013-julian-jordan
+  - b.demos:oussama-julian-jordan-reworked
+  # Could be A's "Ultra Music Festival 2015" or "Main Version"; not decidable from the sheets.
+  - b.demos:waiting-for-love-alt-extended-avicii-few-changes
+  - b.demos:waiting-for-love-cherry-ghost-avicii-few-changes
+  # A documents an early 2018 demo, B a near-final 2020 teaser.
+  - b.demos:love-runs-out-g-eazy-and-sasha-sloan-few-changes
+  - b.demos:inside-our-hearts-shaun-farrugia-v2-tomorrowland
+  - b.demos:inside-our-hearts-shaun-farrugia-shaun-as-a-singer-again
+  # A's Gravity has a different vocalist and no year.
+  - b.demos:gravity-jaimes-ultra-2023
+  - b.demos:gravity-jaimes-edc-second-verse
+
+fix:
+  a.stems:martin-garrix-and-bebe-rexha-in-the-name-of-love-instrumental:
+    title: In The Name Of Love
+    artists:
+      - { name: Martin Garrix, role: main }
+      - { name: Bebe Rexha, role: main }
+  a.unreleased:area21-same-all-day-id-oxford-2016:
+    version_label: Oxford 2016
+  a.unreleased:martin-garrix-wild-nights-ver-feat-nijia:
+    version_label: Unknown version
+  a.unreleased:david-guetta-and-stargate-think-of-you-like-i-do-original-demo:
+    version_label: Original Demo
+  a.unreleased:martin-garrix-sandcastles-in-the-snow-used-to-love-demo-feat-bonn:
+    version_label: Demo
+  # The row says "Ultra 2023" but sits under 2024 and its note says Ultra 2024.
+  b.demos:gravity-jaimes-ultra-2023:
+    variation: Ultra 2024
+  b.demos:cant-feel-my-face-remix-the-weeknd-reworked:
+    type: remix
+    version_label: Old version
+    artists:
+      - { name: The Weeknd, role: original_artist }
+      - { name: Martin Garrix, role: remixer }
+  b.demos:heroes-boomerang-breathe-carolina-reworked:
+    artists:
+      - { name: Brooks, role: main }
+      - { name: Breathe Carolina, role: main }
+  b.demos:21-early-version-maejor-changes-in-the-lyrics:
+    artists: [{ name: AREA21, role: main }]
+  b.demos:human-ade-masterclass-2017-maejor-reworked:
+    artists: [{ name: AREA21, role: main }]
+  b.demos:lovin-every-minute-maejor-reworked:
+    artists: [{ name: AREA21, role: main }]
+  b.demos:make-you-mine-festival-demo-bleu-clair-changes-in-the-drop-and-melody:
+    artists:
+      - { name: Bleu Clair, role: main }
+      - { name: Martin Garrix, role: main, as: YTRAM }
+  b.demos:make-you-mine-dutch-waters-version-bleu-clair-few-changes:
+    artists:
+      - { name: Bleu Clair, role: main }
+      - { name: Martin Garrix, role: main, as: YTRAM }
+  b.demos:fire-tomorrowland-version-elderbrook-few-changes:
+    artists:
+      - { name: Martin Garrix, role: main, as: YTRAM }
+      - { name: Elderbrook, role: main }
+  b.demos:xs-charlie-xcx-other-singer:
+    artists:
+      - { name: CMC$, role: main }
+      - { name: Martin Garrix, role: main, as: GRX }
+      - { name: Charli XCX, role: feat, uncertain: true }
+  b.demos:restart-your-heart-ultra-2019-florian-picasso:
+    artists:
+      - { name: Florian Picasso, role: main }
+      - { name: Martin Garrix, role: main, as: GRX }
+  b.demos:utopia-cant-you-see-shermanology-changes-in-the-vocals:
+    artists:
+      - { name: Shermanology, role: main }
+      - { name: Martin Garrix, role: main, as: GRX }
+  b.demos:waiting-for-love-alt-extended-avicii-few-changes:
+    artists:
+      - { name: Martin Garrix, role: main }
+      - { name: Avicii, role: main }
+      - { name: Simon Aldred, role: feat }
+  b.demos:waiting-for-love-cherry-ghost-avicii-few-changes:
+    artists:
+      - { name: Martin Garrix, role: main }
+      - { name: Avicii, role: main }
+      - { name: Simon Aldred, role: feat }
+  b.demos:inside-our-hearts-shaun-farrugia-v2-tomorrowland:
+    artists:
+      - { name: Martin Garrix, role: main }
+      - { name: Alesso, role: main }
+      - { name: Shaun Farrugia, role: feat }
+  b.demos:inside-our-hearts-shaun-farrugia-shaun-as-a-singer-again:
+    artists:
+      - { name: Martin Garrix, role: main }
+      - { name: Alesso, role: main }
+      - { name: Shaun Farrugia, role: feat }
+
+# Songs whose versions would not group by title alone, or that were later
+# released. `aka` is shown on the site; `match` is used for grouping only.
+# `released_as` is editorial: set where the sheets say so, or where the row
+# documents a demo, stem or alternate version of an official release.
+tracks:
+  - title: Dragon
+    aka: [Pineapple]
+    released_as: Dragon (with Matisse & Sadko)
+  - title: Music Box
+    aka: [Carousel]
+    match: ["Music Box / Carousel"]
+  - title: Like I Do
+    aka: [Think Of You]
+    released_as: Like I Do (David Guetta, Martin Garrix & Brooks)
+  - title: All I'm Missing
+    released_as: Have No Fear (Third Party)
+  - title: Love of Your Life
+    aka: ["We're the Same Tonight"]
+  - title: Used To Love
+    aka: [Sandcastles In The Snow]
+    released_as: Used To Love (with Dean Lewis)
+  - title: Waiting For Tomorrow
+    aka: [One]
+    released_as: Waiting For Tomorrow (with Pierce Fulton, feat. Mike Shinoda)
+  - title: Now That I've Found You
+    aka: [Wanna Live Tomorrow]
+    released_as: Now That I've Found You (feat. John Martin & Michel Zitron)
+  - title: Boomerang
+    aka: [Heroes]
+    released_as: Boomerang (Brooks & GRX)
+  - title: Another Level
+    aka: ["On & On"]
+  - title: Access
+    aka: [Chinatown]
+    released_as: Access
+  - title: Spotless
+    aka: [Swagger]
+    released_as: Spotless (with Jay Hardway)
+  - title: Take It In
+    match: [Written In The Sky]
+    released_as: Written In The Sky (Justin Mylo)
+  - title: Wanna Live Tonight
+    match: [Live Tonight]
+  - title: Can't You See
+    aka: [Utopia]
+    released_as: Can't You See (Shermanology & GRX)
+  - title: Breach (Walk Alone)
+    match: [Walk Alone, Breach]
+    released_as: Breach (Walk Alone) (with Blinders)
+  - title: Starlight (Keep Me Afloat)
+    match: [Starlight, Keep Me Afloat]
+    released_as: Starlight (Keep Me Afloat) (with DubVision, feat. Shaun Farrugia)
+  - title: Waiting For Love
+    released_as: Waiting For Love (Avicii)
+  - title: Rewind, Repeat It
+    released_as: Repeat It
+  - { title: "Drown", released_as: "Drown (feat. Clinton Kane)" }
+  - { title: "Limitless", released_as: "Limitless (with Mesto)" }
+  - { title: "Love Runs Out", released_as: "Love Runs Out (feat. G-Eazy & Sasha Alex Sloan)" }
+  - { title: "Scared To Be Lonely", released_as: "Scared To Be Lonely (with Dua Lipa)" }
+  - { title: "In the Name of Love", released_as: "In the Name of Love (with Bebe Rexha)" }
+  - { title: "Don't Look Down", released_as: "Don't Look Down (feat. Usher)" }
+  - { title: "High On Life", released_as: "High On Life (feat. Bonn)" }
+  - { title: "Oxygen", released_as: "Oxygen (with DubVision, feat. Jordan Grace)" }
+  - { title: "Animals", released_as: "Animals" }
+  - { title: "Wizard", released_as: "Wizard (with Jay Hardway)" }
+  - { title: "Poison", released_as: "Poison" }
+  - { title: "Set Me Free", released_as: "Set Me Free (Dillon Francis & Martin Garrix)" }
+  - { title: "Glitch", released_as: "Glitch (with Julian Jordan)" }
+  - { title: "Together", released_as: "Together (with Matisse & Sadko)" }
+  - { title: "So Far Away", released_as: "So Far Away (with David Guetta, feat. Jamie Scott & Romy Dya)" }
+  - { title: "Can't Feel My Face", released_as: "Can't Feel My Face (Martin Garrix Remix)" }
+  - { title: "21", released_as: "21 (AREA21)" }
+  - { title: "Human", released_as: "Human (AREA21)" }
+  - { title: "Lovin' Every Minute", released_as: "Lovin' Every Minute (AREA21)" }
+  - { title: "Make You Mine", released_as: "Make You Mine (Bleu Clair & YTRAM)" }
+  - { title: "Fire", released_as: "Fire (YTRAM & Elderbrook)" }
+  - { title: "Loop", released_as: "Loop (with DallasK, feat. Sasha Alex Sloan)" }
+  - { title: "X's", released_as: "X's (CMC$ & GRX, feat. Icona Pop)" }
+  - { title: "Restart Your Heart", released_as: "Restart Your Heart (Florian Picasso & GRX)" }
+  - { title: "If We'll Ever Be Remembered", released_as: "If We'll Ever Be Remembered (feat. Shaun Farrugia)" }
+  - { title: "Gold Skies", released_as: "Gold Skies" }
+  - { title: "Won't Let You Go", released_as: "Won't Let You Go" }
+  - { title: "Carry You", released_as: "Carry You" }
+  - { title: "Higher Ground", released_as: "Higher Ground (feat. John Martin)" }
+  - { title: "These Are The Times", released_as: "These Are The Times (feat. JRM)" }
+  - { title: "There For You", released_as: "There For You (with Troye Sivan)" }
+  - { title: "Summer Days", released_as: "Summer Days (feat. Macklemore & Patrick Stump)" }
+  - { title: "Burn Out", released_as: "Burn Out (with Justin Mylo, feat. Dewain Whitmore)" }
+  - { title: "Ocean", released_as: "Ocean (feat. Khalid)" }
+  - { title: "No Sleep", released_as: "No Sleep (feat. Bonn)" }
+  - { title: "We Are The People", released_as: "We Are The People (feat. Bono & The Edge)" }
+  - { title: "Find You", released_as: "Find You (with Justin Mylo, feat. Dewain Whitmore)" }
+  - { title: "Believe", released_as: "Believe (Third Party)" }
+
+# Terms the site uses that the sheet's own key does not define.
+glossary_extra:
+  - category: availability
+    slug: none
+    term: Not circulating
+    definition: No audio of this version is known to be in circulation.
+  - category: availability
+    slug: circulating
+    term: Circulating
+    definition: A copy is known to circulate, but how complete it is has not been documented.
+  # The sheet's wording for these assumes it hosts the audio. The site does not.
+  - category: tag
+    slug: best_of
+    term: Best Of
+    definition: Standout entries, picked by the editors of the community trackers.
+  - category: tag
+    slug: grail
+    term: Grail
+    definition: The most wanted songs that have not surfaced in full.
+  - category: tag
+    slug: wanted
+    term: Wanted
+    definition: Sought after, though not as much as a Grail.
+  - category: tag
+    slug: ai
+    term: AI vocals
+    definition: The recording contains AI-generated vocals.

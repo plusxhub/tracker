@@ -9,7 +9,11 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check": "astro check",
+    "test": "bun test scripts",
+    "db:migrate": "bun scripts/migrate.ts",
+    "import": "bun scripts/import/index.ts"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.6",
